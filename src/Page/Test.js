@@ -8,6 +8,7 @@ import {
   collection,
 } from "firebase/firestore";
 import { auth, db } from "../FirebaseConfig";
+import UserProfile from "./UserProfile";
 
 function Test(user) {
   const [todolistname, setTodolistname] = useState("");
@@ -57,31 +58,37 @@ function Test(user) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        type="text"
-        placeholder="Todo List Name"
-        value={todolistname}
-        onChange={(e) => setTodolistname(e.target.value)}
-      />
-      <input
-        type="text"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      <textarea
-        placeholder="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      ></textarea>
-      <input
-        type="date"
-        value={date}
-        onChange={(e) => setDate(e.target.value)}
-      />
-      <button type="submit">Add Todo</button>
-    </form>
+    <>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Todo List Name"
+          value={todolistname}
+          onChange={(e) => setTodolistname(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <textarea
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        ></textarea>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
+        <button type="submit">Add Todo</button>
+      </form>
+      <br />
+      <div>
+        <UserProfile/>
+      </div>
+    </>
   );
 };
 export default Test;
