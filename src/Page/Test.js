@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   getDocs,
-  getDoc,
   doc,
   query,
   where,
@@ -21,33 +20,30 @@ function Test(user) {
     try {
       auth.onAuthStateChanged(async (user) => {
         if (user) {
-          const todolistRef = collection(db, `todosof ${user.uid}`);
-          const todolistQuery = query(
-            todolistRef,
-            where("todolistname", "==", todolistname)
-          );
+          const userRef = doc(db, "Users", user.uid);
+          const todolistQuery = query(collection(userRef, "todolists"), where("name", "==", todolistname));
           const todolistSnapshot = await getDocs(todolistQuery);
 
           if (todolistSnapshot.empty) {
             // No matching todolist found, create a new one
-            const newTodolistRef = await addDoc(todolistRef, {
-              todolistname: todolistname,
+            const newTodolistRef = await addDoc(collection(userRef, "todolists"), {
+              name: todolistname
             });
 
             // Add title, description, and date to the new todolist
-            await addDoc(collection(db, newTodolistRef.path, "tasks"), {
+            await addDoc(collection(newTodolistRef, "tasks"), {
               title: title,
               description: description,
-              date: date,
+              date: date
             });
           } else {
             // Todolist with the same name exists
             todolistSnapshot.forEach(async (doc) => {
               // Add title, description, and date to the existing todolist
-              await addDoc(collection(db, doc.ref.path, "tasks"), {
+              await addDoc(collection(doc.ref, "tasks"), {
                 title: title,
                 description: description,
-                date: date,
+                date: date
               });
             });
           }
@@ -87,6 +83,5 @@ function Test(user) {
       <button type="submit">Add Todo</button>
     </form>
   );
-}
-
+};
 export default Test;
