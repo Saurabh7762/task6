@@ -20,8 +20,9 @@ export default function Signup() {
         });
       }
       alert("user Registered Successfully!");
+      window.location.href = "/login";
     } catch (error) {
-      console.log(error.message);
+      alert(error.message);
     }
   };
 

@@ -12,9 +12,9 @@ export default function Logig() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       console.log("User login");
-      window.location.href = "/profile";
+      window.location.href = "/to-do-list";
     } catch (error) {
-      console.log(error.message);
+      alert(error.message);
     }
   };
   return (
