@@ -1,6 +1,7 @@
-import { auth,db } from "../FirebaseConfig";
+import { auth, db } from "../FirebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { setDoc,doc } from "firebase/firestore";
+import { setDoc, doc } from "firebase/firestore";
+import "./Style/Signup.css";
 
 export default function Signup() {
   const handleSubmit = async (e) => {
@@ -8,50 +9,37 @@ export default function Signup() {
     const email = e.target.email.value;
     const password = e.target.password.value;
     const name = e.target.name.value;
-    try{
-     await createUserWithEmailAndPassword(auth, email, password);
-     const user =auth.currentUser;
-     console.log(user);
-     if(user){
-      await setDoc(doc(db, "Users", user.uid),{
-        email:user.email,
-        name: name,
-      })
-     }
-     alert("user Registered Successfully!");
-
-    } catch(error){
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      const user = auth.currentUser;
+      console.log(user);
+      if (user) {
+        await setDoc(doc(db, "Users", user.uid), {
+          email: user.email,
+          name: name,
+        });
+      }
+      alert("user Registered Successfully!");
+    } catch (error) {
       console.log(error.message);
     }
   };
 
   return (
     <>
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+      <div className="signup-container">
+        <div className="signup-logo">
           <img
-            className="mx-auto h-10 w-auto"
             src="https://cdn-icons-png.flaticon.com/512/10233/10233512.png"
             alt="Your Company"
           />
-          <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
-            Signup Now
-          </h2>
+          <h2>Signup Now</h2>
         </div>
 
-        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form
-            onSubmit={(e) => handleSubmit(e)}
-            className="space-y-6"
-            action="#"
-          >
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium leading-6 text-gray-900"
-              >
-                Name
-              </label>
+        <div className="signup-form">
+          <form onSubmit={(e) => handleSubmit(e)} action="#">
+            <div className="form-group">
+              <label htmlFor="name">Name</label>
               <div className="mt-2">
                 <input
                   id="name"
@@ -59,18 +47,13 @@ export default function Signup() {
                   type="name"
                   autoComplete="name"
                   required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className="signup-input"
                 />
               </div>
             </div>
 
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium leading-6 text-gray-900"
-              >
-                Email address
-              </label>
+            <div className="form-group">
+              <label htmlFor="email">Email address</label>
               <div className="mt-2">
                 <input
                   id="email"
@@ -78,20 +61,13 @@ export default function Signup() {
                   type="email"
                   autoComplete="email"
                   required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className="signup-input"
                 />
               </div>
             </div>
 
-            <div>
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium leading-6 text-gray-900"
-                >
-                  Password
-                </label>
-              </div>
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
               <div className="mt-2">
                 <input
                   id="password"
@@ -99,27 +75,21 @@ export default function Signup() {
                   type="password"
                   autoComplete="current-password"
                   required
-                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                  className="signup-input"
                 />
               </div>
             </div>
 
             <div>
-              <button
-                type="submit"
-                className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
+              <button type="submit" className="signup-button">
                 Signup
               </button>
             </div>
           </form>
 
-          <p className="mt-10 text-center text-sm text-gray-500">
-            Have a account?{" "}
-            <a
-              href="/login"
-              className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
-            >
+          <p>
+            Have an account?{" "}
+            <a href="/login" className="signup-login-link">
               Login now
             </a>
           </p>

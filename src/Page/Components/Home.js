@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { auth, db } from "../FirebaseConfig";
+import { auth, db } from "../../FirebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 function Home() {
   const [userDetails, setUserDetails] = useState(null);
