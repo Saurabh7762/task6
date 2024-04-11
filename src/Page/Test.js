@@ -26,7 +26,7 @@ function Test(user) {
   const handleTodoListChange = (e) => {
     const selectedValue = e.target.value;
     setTodolistname(selectedValue);
-    
+
     // Clear newTodolistName if an existing todo list is selected
     if (selectedValue !== "addNew") {
       setNewTodolistName("");
@@ -71,6 +71,14 @@ function Test(user) {
       auth.onAuthStateChanged(async (user) => {
         if (user) {
           const selectedTodoListName = newTodolistName || todolistname;
+
+          if (
+            !selectedTodoListName ||
+            selectedTodoListName === "Select Todo List"
+          ) {
+            console.log("Please select a todo list.");
+            return;
+          }
 
           const userRef = doc(db, "Users", user.uid);
           const todolistQuery = query(
@@ -125,8 +133,11 @@ function Test(user) {
           value={todolistname}
           onChange={handleTodoListChange}
           className="input"
+          required // Make the select field required
         >
-          <option value="">Select Todo List</option>
+          <option value="" disabled>
+            Select Todo List
+          </option>
           {todolistOptions.map((option, index) => (
             <option key={index} value={option}>
               {option}
@@ -141,6 +152,7 @@ function Test(user) {
             value={newTodolistName}
             onChange={handleNewTodoListNameChange}
             className="input"
+            required // Make the input field required
           />
         )}
         <input
@@ -148,7 +160,7 @@ function Test(user) {
           placeholder="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          required
+          required // Make the input field required
           className="input"
         />
         <input
@@ -156,13 +168,13 @@ function Test(user) {
           value={date}
           min={today}
           onChange={(e) => setDate(e.target.value)}
-          required
+          required // Make the input field required
           className="input"
         />
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          required
+          required // Make the select field required
           className="select"
         >
           <option value="High">High</option>
@@ -173,7 +185,7 @@ function Test(user) {
           placeholder="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          required
+          required // Make the textarea field required
           className="textarea"
         ></textarea>
         <button type="submit" className="button">
