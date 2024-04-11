@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   getDocs,
   doc,
@@ -6,53 +6,95 @@ import {
   where,
   addDoc,
   collection,
+  onSnapshot,
 } from "firebase/firestore";
-import { auth, db } from "../../FirebaseConfig";
-import UserProfile from "../UserProfile";
-import "../Style/Test.css";
+import { auth, db } from "../FirebaseConfig";
+import UserProfile from "./Components/UserProfile";
+import "./Style/Test.css";
 
 function Test(user) {
   const [todolistname, setTodolistname] = useState("");
+  const [newTodolistName, setNewTodolistName] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
-  const [priority, setPriority] = useState("Medium"); // Default priority set to Medium
+  const [priority, setPriority] = useState("Medium");
+  const [todolistOptions, setTodolistOptions] = useState([]);
 
-  // Get today's date in the format YYYY-MM-DD
   const today = new Date().toISOString().split("T")[0];
+
+  const handleTodoListChange = (e) => {
+    const selectedValue = e.target.value;
+    setTodolistname(selectedValue);
+    
+    // Clear newTodolistName if an existing todo list is selected
+    if (selectedValue !== "addNew") {
+      setNewTodolistName("");
+    }
+  };
+
+  const handleNewTodoListNameChange = (e) => {
+    setNewTodolistName(e.target.value);
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          console.log("User is not signed in to fetch todo lists");
+          return;
+        }
+
+        const userRef = doc(db, "Users", user.uid);
+        const q = query(collection(userRef, "todolists"));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+          const options = [];
+          snapshot.forEach((doc) => {
+            options.push(doc.data().name);
+          });
+          setTodolistOptions(options);
+        });
+
+        return () => unsubscribe();
+      } catch (error) {
+        console.error("Error fetching todo lists:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       auth.onAuthStateChanged(async (user) => {
         if (user) {
+          const selectedTodoListName = newTodolistName || todolistname;
+
           const userRef = doc(db, "Users", user.uid);
           const todolistQuery = query(
             collection(userRef, "todolists"),
-            where("name", "==", todolistname)
+            where("name", "==", selectedTodoListName)
           );
           const todolistSnapshot = await getDocs(todolistQuery);
 
-          if (todolistSnapshot.empty) {
-            // No matching todolist found, create a new one
+          if (todolistSnapshot.empty && newTodolistName) {
             const newTodolistRef = await addDoc(
               collection(userRef, "todolists"),
               {
-                name: todolistname,
+                name: newTodolistName,
               }
             );
 
-            // Add title, description, date, and priority to the new todolist
             await addDoc(collection(newTodolistRef, "tasks"), {
               title: title,
               description: description,
               date: date,
               priority: priority,
             });
-          } else {
-            // Todolist with the same name exists
+          } else if (!todolistSnapshot.empty) {
             todolistSnapshot.forEach(async (doc) => {
-              // Add title, description, date, and priority to the existing todolist
               await addDoc(collection(doc.ref, "tasks"), {
                 title: title,
                 description: description,
@@ -61,8 +103,8 @@ function Test(user) {
               });
             });
           }
-          // Clear all fields after successful submission
           setTodolistname("");
+          setNewTodolistName("");
           setTitle("");
           setDescription("");
           setDate("");
@@ -79,34 +121,48 @@ function Test(user) {
   return (
     <div className="container">
       <form onSubmit={handleSubmit} className="form">
-        <input
-          type="text"
-          placeholder="Todo List Name"
+        <select
           value={todolistname}
-          onChange={(e) => setTodolistname(e.target.value)}
-          required // Making the field required
+          onChange={handleTodoListChange}
           className="input"
-        />
+        >
+          <option value="">Select Todo List</option>
+          {todolistOptions.map((option, index) => (
+            <option key={index} value={option}>
+              {option}
+            </option>
+          ))}
+          <option value="addNew">Add New</option>
+        </select>
+        {todolistname === "addNew" && (
+          <input
+            type="text"
+            placeholder="Enter New Todo List Name"
+            value={newTodolistName}
+            onChange={handleNewTodoListNameChange}
+            className="input"
+          />
+        )}
         <input
           type="text"
           placeholder="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          required // Making the field required
+          required
           className="input"
         />
         <input
           type="date"
           value={date}
-          min={today} // Set minimum date to today's date
+          min={today}
           onChange={(e) => setDate(e.target.value)}
-          required // Making the field required
+          required
           className="input"
         />
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          required // Making the field required
+          required
           className="select"
         >
           <option value="High">High</option>
@@ -117,7 +173,7 @@ function Test(user) {
           placeholder="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          required // Making the field required
+          required
           className="textarea"
         ></textarea>
         <button type="submit" className="button">
@@ -131,4 +187,5 @@ function Test(user) {
     </div>
   );
 }
+
 export default Test;

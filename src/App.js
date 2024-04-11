@@ -4,7 +4,7 @@ import Signup from "./Page/Signup";
 import { auth } from "./FirebaseConfig";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./Page/Components/Home";
-import Test from "./Page/Components/Test";
+import Test from "./Page/Test";
 
 function App() {
   const [user, setUser] = useState();

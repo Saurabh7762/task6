@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { auth, db } from "../FirebaseConfig";
+import { auth, db } from "../../FirebaseConfig";
 import {
   collection,
   getDoc,
@@ -9,7 +9,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
-import "./Style/UserProfile.css"; 
+import "../Style/UserProfile.css";
 
 const UserProfile = () => {
   const [userName, setUserName] = useState("");
