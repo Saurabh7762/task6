@@ -7,6 +7,7 @@ import {
   addDoc,
   collection,
   onSnapshot,
+  updateDoc,
 } from "firebase/firestore";
 import { auth, db } from "../FirebaseConfig";
 import UserProfile from "./Components/UserProfile";
@@ -87,11 +88,15 @@ function Test(user) {
           );
           const todolistSnapshot = await getDocs(todolistQuery);
 
+          const currentTime = new Date().toISOString();
+
           if (todolistSnapshot.empty && newTodolistName) {
             const newTodolistRef = await addDoc(
               collection(userRef, "todolists"),
               {
                 name: newTodolistName,
+                creationTime: currentTime,
+                lastUpdated: currentTime, // Add lastUpdated for new todo lists
               }
             );
 
@@ -100,14 +105,22 @@ function Test(user) {
               description: description,
               date: date,
               priority: priority,
+              taskCreationTime: currentTime,
             });
           } else if (!todolistSnapshot.empty) {
             todolistSnapshot.forEach(async (doc) => {
-              await addDoc(collection(doc.ref, "tasks"), {
+              const todoListRef = doc.ref;
+              await addDoc(collection(todoListRef, "tasks"), {
                 title: title,
                 description: description,
                 date: date,
                 priority: priority,
+                taskCreationTime: currentTime,
+              });
+
+              // Update lastUpdated for existing todo lists
+              await updateDoc(todoListRef, {
+                lastUpdated: currentTime,
               });
             });
           }

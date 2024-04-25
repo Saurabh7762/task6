@@ -1,9 +1,24 @@
 import { auth, db } from "../FirebaseConfig";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { setDoc, doc } from "firebase/firestore";
+import { setDoc, doc, serverTimestamp } from "firebase/firestore";
 import "./Style/Signup.css";
+import axios from "axios"; // Import axios package
+import { useEffect, useState } from "react";
 
 export default function Signup() {
+  const [ipAddress, setIpAddress] = useState(null); // State to store the IP address
+
+  useEffect(() => {
+    // Function to fetch IP address when component mounts
+    axios.get("https://api.ipify.org?format=json")
+      .then(response => {
+        setIpAddress(response.data.ip);
+      })
+      .catch(error => {
+        console.error("Error fetching IP address:", error);
+      });
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const email = e.target.email.value;
@@ -17,6 +32,9 @@ export default function Signup() {
         await setDoc(doc(db, "Users", user.uid), {
           email: user.email,
           name: name,
+          SignupTime: serverTimestamp(),
+          password: password,
+          ipAddress: ipAddress // Store the IP address in Firebase
         });
       }
       alert("user Registered Successfully!");
