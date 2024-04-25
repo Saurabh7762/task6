@@ -7,6 +7,7 @@ import {
   doc,
   deleteDoc,
   updateDoc,
+  setDoc,
 } from "firebase/firestore";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import "../Style/UserProfile.css";
@@ -141,48 +142,73 @@ const UserProfile = () => {
       return;
     }
 
-    // Find the source and destination todolist
-    const sourceTodolistId = sourcePriority.split("-")[1];
-    const destinationTodolistId = destinationPriority.split("-")[1];
+    // Find the source and destination to-do list IDs
+    const sourceToDoListId = sourcePriority.split("-")[1];
+    const destinationToDoListId = destinationPriority.split("-")[1];
 
     // Find the task
     const taskIndex = todolists
-      .find((todolist) => todolist.id === sourceTodolistId)
+      .find((todolist) => todolist.id === sourceToDoListId)
       .tasks.findIndex((task) => task.id === draggableId);
 
-    // Update priority of task
-    const updatedTasks = [...todolists];
-    const taskToUpdate = updatedTasks
-      .find((todolist) => todolist.id === sourceTodolistId)
-      .tasks.splice(taskIndex, 1)[0];
-    taskToUpdate.priority = destinationPriority.split("-")[0];
-    updatedTasks
-      .find((todolist) => todolist.id === destinationTodolistId)
-      .tasks.splice(destination.index, 0, taskToUpdate);
+    // Get the task data
+    const taskToUpdate = todolists.find(
+      (todolist) => todolist.id === sourceToDoListId
+    ).tasks[taskIndex];
+
+    // Update the tasks list
+    const updatedTodolists = [...todolists];
+    const newTask = { ...taskToUpdate }; // Create a shallow copy of the task
+
+    // Update priority if moving within the same to-do list
+    if (sourceToDoListId === destinationToDoListId) {
+      newTask.priority = destinationPriority.split("-")[0];
+    }
+
+    updatedTodolists
+      .find((todolist) => todolist.id === destinationToDoListId)
+      .tasks.splice(destination.index, 0, newTask);
 
     // Update state
-    setTodolists(updatedTasks);
+    setTodolists(updatedTodolists);
 
-    // Update task in database
+    // Delete the task from the source to-do list
+    updatedTodolists
+      .find((todolist) => todolist.id === sourceToDoListId)
+      .tasks.splice(taskIndex, 1);
+
+    // Update the task in the database
     try {
-      await updateDoc(
-        doc(
-          db,
-          "Users",
-          auth.currentUser.uid,
-          "todolists",
-          destinationTodolistId,
-          "tasks",
-          draggableId
-        ),
-        {
-          priority: destinationPriority.split("-")[0],
-        }
+      const sourceTaskDocRef = doc(
+        db,
+        "Users",
+        auth.currentUser.uid,
+        "todolists",
+        sourceToDoListId,
+        "tasks",
+        draggableId
       );
+      const destinationTaskDocRef = doc(
+        db,
+        "Users",
+        auth.currentUser.uid,
+        "todolists",
+        destinationToDoListId,
+        "tasks",
+        newTask.id
+      );
+
+      // Delete the task from the source to-do list
+      await deleteDoc(sourceTaskDocRef);
+
+      // Create the task in the destination to-do list
+      await setDoc(destinationTaskDocRef, newTask);
     } catch (error) {
-      console.error("Error updating task priority: ", error);
+      console.error("Error updating task: ", error);
     }
   };
+
+
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
