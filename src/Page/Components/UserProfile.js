@@ -127,6 +127,7 @@ const UserProfile = () => {
     }
   };
 
+  
   const handleDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
     if (!destination) return;
@@ -158,26 +159,24 @@ const UserProfile = () => {
 
     // Update the tasks list
     const updatedTodolists = [...todolists];
-    const newTask = { ...taskToUpdate }; // Create a shallow copy of the task
 
-    // Update priority if moving within the same to-do list
-    if (sourceToDoListId === destinationToDoListId) {
-      newTask.priority = destinationPriority.split("-")[0];
-    }
-
-    updatedTodolists
-      .find((todolist) => todolist.id === destinationToDoListId)
-      .tasks.splice(destination.index, 0, newTask);
-
-    // Update state
-    setTodolists(updatedTodolists);
-
-    // Delete the task from the source to-do list
+    // Remove the task from its original position
     updatedTodolists
       .find((todolist) => todolist.id === sourceToDoListId)
       .tasks.splice(taskIndex, 1);
 
-    // Update the task in the database
+    // Insert the task at the new position
+    updatedTodolists
+      .find((todolist) => todolist.id === destinationToDoListId)
+      .tasks.splice(destination.index, 0, taskToUpdate);
+
+    // Update the priority of the task based on its new position
+    const newPriority = destinationPriority.split("-")[0];
+    const updatedTask = { ...taskToUpdate, priority: newPriority };
+
+    // Update state
+    setTodolists(updatedTodolists);
+
     try {
       const sourceTaskDocRef = doc(
         db,
@@ -195,18 +194,46 @@ const UserProfile = () => {
         "todolists",
         destinationToDoListId,
         "tasks",
-        newTask.id
+        draggableId // Task ID remains the same
       );
 
-      // Delete the task from the source to-do list
-      await deleteDoc(sourceTaskDocRef);
+      // If the task is moved to a different to-do list, delete it from the source to-do list in the database
+      if (sourceToDoListId !== destinationToDoListId) {
+        await deleteDoc(sourceTaskDocRef);
+      }
 
-      // Create the task in the destination to-do list
-      await setDoc(destinationTaskDocRef, newTask);
+      // Update the task in the database
+      await setDoc(destinationTaskDocRef, updatedTask);
+
+      // Update the lastUpdated field for both source and destination todo lists
+      const now = new Date().toISOString();
+      const sourceTodolistDocRef = doc(
+        db,
+        "Users",
+        auth.currentUser.uid,
+        "todolists",
+        sourceToDoListId
+      );
+      const destinationTodolistDocRef = doc(
+        db,
+        "Users",
+        auth.currentUser.uid,
+        "todolists",
+        destinationToDoListId
+      );
+
+      // Update lastUpdated for source todo list
+      await updateDoc(sourceTodolistDocRef, { lastUpdated: now });
+
+      // Update lastUpdated for destination todo list
+      await updateDoc(destinationTodolistDocRef, { lastUpdated: now });
     } catch (error) {
       console.error("Error updating task: ", error);
     }
   };
+
+
+
 
 
 

@@ -1,3 +1,4 @@
+// Import necessary functions from Firebase
 import React, { useState, useEffect } from "react";
 import {
   getDocs,
@@ -96,7 +97,7 @@ function Test(user) {
               {
                 name: newTodolistName,
                 creationTime: currentTime,
-                lastUpdated: currentTime, // Add lastUpdated for new todo lists
+                lastUpdated: currentTime, // Set both creationTime and lastUpdated
               }
             );
 
@@ -110,6 +111,8 @@ function Test(user) {
           } else if (!todolistSnapshot.empty) {
             todolistSnapshot.forEach(async (doc) => {
               const todoListRef = doc.ref;
+
+              // Add task to the todo list
               await addDoc(collection(todoListRef, "tasks"), {
                 title: title,
                 description: description,
@@ -138,6 +141,7 @@ function Test(user) {
       console.error(error.message);
     }
   };
+
 
   return (
     <div className="container">
